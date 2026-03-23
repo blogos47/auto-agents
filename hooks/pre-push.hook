@@ -1,0 +1,13 @@
+#!/bin/bash
+# auto-agents — pre-push hook
+# Lanza auto-test + auto-sec en paralelo al pushear.
+AA_ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+
+nohup "$AA_ROOT/core.sh" auto-test "$PROJECT_DIR" > /tmp/auto-test-last.log 2>&1 &
+echo "auto-test lanzado (PID $!)"
+
+nohup "$AA_ROOT/core.sh" auto-sec "$PROJECT_DIR" > /tmp/auto-sec-last.log 2>&1 &
+echo "auto-sec lanzado (PID $!)"
+
+echo "Logs: /tmp/auto-test-last.log, /tmp/auto-sec-last.log"

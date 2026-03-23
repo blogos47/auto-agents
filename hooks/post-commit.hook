@@ -1,0 +1,6 @@
+#!/bin/bash
+# auto-agents — post-commit hook
+# Lanza auto-doc en background tras cada commit.
+AA_ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+nohup "$AA_ROOT/core.sh" auto-doc "$PROJECT_DIR" > /tmp/auto-doc-last.log 2>&1 &
