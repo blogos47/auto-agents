@@ -18,8 +18,10 @@ Each module runs independently with its own lock file, log, and report.
 
 | Stack | Build | Testing | Security |
 |-------|-------|---------|----------|
-| **astro** | `npm run build` | i18n consistency, internal links, frontmatter | npm audit, inline scripts, meta tags |
-| **next** | `npm run build` | vitest + playwright | npm audit, auth, CSP, API endpoints, injections |
+| Stack | Build | Testing | Security | Docs |
+|-------|-------|---------|----------|------|
+| **astro** | `npm run build` | i18n consistency, internal links, frontmatter | npm audit, inline scripts, meta tags | drift detection via doc-map.md |
+| **next** | `npm run build` | vitest + playwright | npm audit, auth, CSP, API endpoints, injections | drift detection via doc-map.md |
 
 ## Install
 
