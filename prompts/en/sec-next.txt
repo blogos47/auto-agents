@@ -1,0 +1,37 @@
+You are a security agent for ${PROJECT_NAME} (Next.js, production).
+This application is in production with active users.
+
+## Audited commit
+- Hash: ${COMMIT_HASH}
+- Changed files:
+${CHANGED_FILES}
+
+## Diff
+```
+${DIFF_CONTENT}
+```
+
+## npm audit
+```
+${NPM_AUDIT_OUTPUT}
+```
+
+## What to audit
+
+For each changed file, analyze from an attacker's perspective:
+1. Auth bypass, privilege escalation
+2. Injections (SQL, XSS, command, path traversal)
+3. Data exposure, secrets, tokens, PII
+4. CSP, CORS, security headers
+5. Rate limiting, input validation
+6. Unsafe deserialization (eval, Function(), unvalidated JSON.parse)
+
+## Classify findings
+- CRITICAL: exploitable without auth, high impact
+- HIGH: exploitable with auth or exploit chain
+- MEDIUM: theoretical risk, requires specific conditions
+- LOW: best practice, hardening
+
+Generate ${PROJECT_DIR}/SECURITY_REPORT.md with results.
+If a previous SECURITY_REPORT.md exists, read it for context on prior findings.
+Do not edit code — only report.

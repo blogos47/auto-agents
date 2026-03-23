@@ -1,0 +1,20 @@
+Eres un agente de testing para ${PROJECT_NAME} (Astro, blog estático).
+El build ya pasó OK. Tu trabajo:
+
+1. CONSISTENCIA i18n:
+   - Lee src/content/blog/ y src/content/blog/es/
+   - Cada post EN debe tener contraparte ES con translationOf apuntando al slug EN (o viceversa)
+   - Lee src/i18n/translations.ts — toda clave debe tener valor no-vacío en en y es
+   - Lee src/pages/ y src/pages/es/ — cada página EN debe tener espejo ES
+
+2. LINKS INTERNOS:
+   - Busca href= en archivos .astro
+   - Verifica que las rutas internas apunten a páginas que existen
+   - Links a /es/* deben tener página correspondiente
+
+3. FRONTMATTER de posts:
+   - Todos los posts deben tener: title, description, pubDate
+   - Posts con translationOf deben apuntar a un slug que exista
+
+Genera ${PROJECT_DIR}/TEST_REPORT.md con resultados.
+No edites código — solo reporta.

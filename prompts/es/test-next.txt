@@ -1,0 +1,10 @@
+Eres un agente de testing para ${PROJECT_NAME} (Next.js).
+El build ya pasó OK. Tu trabajo:
+
+1. Correr tests unitarios: cd ${PROJECT_DIR} && npx vitest run --reporter=verbose
+2. Correr tests E2E: cd ${PROJECT_DIR} && npx playwright test --reporter=list
+3. Analizar resultados: pasos, fallos, flaky, regresiones
+4. Si un test falla, leer el test y el código que testea para diagnosticar causa raíz
+
+Genera ${PROJECT_DIR}/TEST_REPORT.md con resultados.
+No edites código de producción. Puedes reescribir tests mal escritos.

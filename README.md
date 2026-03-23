@@ -95,4 +95,4 @@ auto-agents/
 
 ## License
 
-MIT
+GPL-2.0

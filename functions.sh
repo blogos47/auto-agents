@@ -1,8 +1,8 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
 # auto-agents — functions.sh
-# Librería de funciones puras. No ejecuta nada al ser sourceado.
-# Cada función hace 1 cosa. Sin side effects.
+# Pure function library. No side effects when sourced.
+# Each function does one thing. Auditable in 10 minutes.
 # ═══════════════════════════════════════════════════════════════
 
 # ── Logging ────────────────────────────────────────────────────
@@ -13,21 +13,22 @@ agent_log() {
 }
 
 # ── Lock / Unlock ──────────────────────────────────────────────
-# Impide que 2 instancias del mismo módulo corran en paralelo.
-# Usa flock (non-blocking). Si el lock ya existe, sale con 0.
+# Prevents 2 instances of the same module from running in parallel.
+# Uses flock (non-blocking). If lock exists, exits with 0.
 
 agent_lock() {
-  local name="${1:?agent_lock requiere nombre}"
+  local name="${1:?agent_lock requires a name}"
   _LOCK_FILE="/tmp/auto-${name}.lock"
   exec 9>"$_LOCK_FILE"
   flock -n 9 || {
-    agent_log "Lock activo: $_LOCK_FILE — otra instancia corriendo. Saliendo."
+    # shellcheck disable=SC2059
+    agent_log "$(printf "$MSG_LOCK_ACTIVE" "$_LOCK_FILE")"
     exit 0
   }
 }
 
-# ── Notificación (toast Windows vía PowerShell) ────────────────
-# No-op si PowerShell no está disponible (Linux nativo, macOS).
+# ── Notification (Windows toast via PowerShell) ────────────────
+# No-op if PowerShell is not available (native Linux, macOS).
 
 agent_notify() {
   local title="${1:-auto-agents}"
@@ -47,17 +48,17 @@ agent_notify() {
     -Title "$title" -Body "$body" > /dev/null 2>&1 &
 }
 
-# ── Pre-filtro ─────────────────────────────────────────────────
-# Recibe patterns (1 por línea). Si TODOS los archivos cambiados
-# matchean algún pattern, sale con 0 (skip). Sino retorna 1.
+# ── Pre-filter ─────────────────────────────────────────────────
+# Receives patterns (1 per arg). If ALL changed files match
+# some pattern, returns 0 (skip). Otherwise returns 1.
 #
-# Uso:
+# Usage:
 #   agent_prefilter "docs/**" "*.md" ".claude/**" && exit 0
 
 agent_prefilter() {
   local changed
   changed=$(agent_git_changed_files)
-  [ -z "$changed" ] && return 0  # sin cambios = skip
+  [ -z "$changed" ] && return 0
 
   local file match_all=true
   while IFS= read -r file; do
@@ -91,11 +92,10 @@ agent_git_last_hash() {
   git -C "${PROJECT_DIR:-.}" log -1 --format='%h' 2>/dev/null || echo ""
 }
 
-# ── Invocar agente Claude ──────────────────────────────────────
-# Escribe el prompt a un archivo temporal, lanza claude -p,
-# captura el log en stream-json.
+# ── Run Claude agent ───────────────────────────────────────────
+# Writes prompt to temp file, launches claude -p, captures log.
 #
-# Requiere: CLAUDE_BIN, MODEL, TIMEOUT, _LOG_FILE, PROJECT_DIR
+# Requires: CLAUDE_BIN, MODEL, TIMEOUT, _LOG_FILE, PROJECT_DIR
 
 agent_run() {
   local prompt="$1"
@@ -108,7 +108,8 @@ agent_run() {
   prompt_file=$(mktemp /tmp/auto-agents-prompt.XXXXXX)
   echo "$prompt" > "$prompt_file"
 
-  agent_log "Lanzando agente ($model, timeout ${timeout}s)..."
+  # shellcheck disable=SC2059
+  agent_log "$(printf "$MSG_AGENT_LAUNCHING" "$model" "$timeout")"
 
   cat "$prompt_file" | timeout "$timeout" "$claude" \
     -p \
@@ -122,19 +123,21 @@ agent_run() {
   rm -f "$prompt_file"
 
   if [ $exit_code -eq 124 ]; then
-    agent_log "TIMEOUT (${timeout}s)"
+    # shellcheck disable=SC2059
+    agent_log "$(printf "$MSG_AGENT_TIMEOUT" "$timeout")"
   elif [ $exit_code -ne 0 ]; then
-    agent_log "Agente terminó con error (exit $exit_code)"
+    # shellcheck disable=SC2059
+    agent_log "$(printf "$MSG_AGENT_ERROR" "$exit_code")"
   else
-    agent_log "Agente completado OK"
+    agent_log "$MSG_AGENT_OK"
   fi
 
   return $exit_code
 }
 
-# ── Parsear stats del stream-json ──────────────────────────────
-# Lee el log y extrae tokens y costo del resultado final.
-# Imprime: "TOKENS|COST" (ej: "45230|1.12")
+# ── Parse stats from stream-json ───────────────────────────────
+# Reads the log and extracts tokens and cost from the final result.
+# Prints: "TOKENS|COST" (e.g.: "45230|1.12")
 
 agent_parse_stats() {
   local log_file="${1:-$_LOG_FILE}"
@@ -154,7 +157,21 @@ print('0|0.00')
 " 2>/dev/null || echo "0|0.00"
 }
 
-# ── Header estándar para reportes ──────────────────────────────
+# ── Load prompt from file with variable interpolation ──────────
+# Reads prompt template and replaces ${VAR} with env values.
+
+agent_load_prompt() {
+  local prompt_name="$1"
+  local lang="${LANG:-en}"
+  local prompt_file="${AA_ROOT}/prompts/${lang}/${prompt_name}.txt"
+
+  [ -f "$prompt_file" ] || prompt_file="${AA_ROOT}/prompts/en/${prompt_name}.txt"
+  [ -f "$prompt_file" ] || { agent_log "Prompt not found: $prompt_name"; return 1; }
+
+  envsubst < "$prompt_file"
+}
+
+# ── Standard report header ─────────────────────────────────────
 
 agent_report_header() {
   local module="${1:-unknown}"
@@ -166,11 +183,11 @@ agent_report_header() {
 
   cat <<EOF
 # ${module^^} Report — $project
-Generado: $(date '+%Y-%m-%d %H:%M') | Commit: \`$hash\` — $msg
+Generated: $(date '+%Y-%m-%d %H:%M') | Commit: \`$hash\` — $msg
 EOF
 }
 
-# ── Inicializar log ────────────────────────────────────────────
+# ── Initialize log ─────────────────────────────────────────────
 
 agent_init_log() {
   local module="${1:-agent}"
