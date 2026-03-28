@@ -114,6 +114,7 @@ agent_run() {
   cat "$prompt_file" | timeout "$timeout" "$claude" \
     -p \
     --model "$model" \
+    --effort max \
     --verbose \
     --output-format stream-json \
     --allowedTools $allowed_tools \

@@ -1,6 +1,11 @@
 #!/bin/bash
 # auto-agents — post-commit hook
 # Lanza auto-doc en background tras cada commit.
+
+# Clean git env vars inherited from worktrees — without this,
+# auto-doc may commit to the wrong branch when triggered from a worktree.
+unset GIT_DIR GIT_WORK_TREE
+
 AA_ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
 PROJECT_DIR="$(git rev-parse --show-toplevel)"
 nohup "$AA_ROOT/core.sh" auto-doc "$PROJECT_DIR" > /tmp/auto-doc-last.log 2>&1 &

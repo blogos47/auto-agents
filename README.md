@@ -19,7 +19,7 @@ Each module runs independently with its own lock file, log, and report.
 | Stack | Build | Testing | Security | Docs |
 |-------|-------|---------|----------|------|
 | **astro** | `npm run build` | i18n consistency, internal links, frontmatter | npm audit, inline scripts, meta tags | drift detection via doc-map.md |
-| **next** | `npm run build` | vitest + playwright | npm audit, auth, CSP, API endpoints, injections | drift detection via doc-map.md |
+| **nextjs** | `npm run build` | vitest + playwright | npm audit, auth, CSP, API endpoints, injections | drift detection via doc-map.md |
 
 ## Install
 
@@ -82,6 +82,12 @@ auto-agents/
 | `docs/DOC_REPORT.md` | auto-doc | No (tracked) |
 | `TEST_REPORT.md` | auto-test | Yes |
 | `SECURITY_REPORT.md` | auto-sec | Yes |
+
+## Git worktrees
+
+If your project uses git worktrees, the post-commit hook cleans `GIT_DIR` and `GIT_WORK_TREE` before launching auto-doc. Without this, git hooks inherit the worktree's environment, causing auto-doc to commit on the wrong branch.
+
+`core.sh` also unsets these vars as defense-in-depth.
 
 ## Requirements
 

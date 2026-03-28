@@ -10,6 +10,9 @@
 # ═══════════════════════════════════════════════════════════════
 set -euo pipefail
 
+# Defense-in-depth: clean git env vars that hooks may inherit from worktrees
+unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
+
 AA_ROOT="$(cd "$(dirname "$0")" && pwd)"
 MODULE_NAME="${1:?Usage: core.sh <module> [project_dir]}"
 PROJECT_DIR="${2:-$(pwd)}"
